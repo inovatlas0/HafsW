@@ -714,8 +714,7 @@ body.dk .stat-num{color:var(--em3)}
     <div class="settings-row">
       <div class="settings-label">🔊 مصدر الصوت</div>
       <select id="cdn-sel" onchange="saveCDN()" style="direction:ltr;min-width:200px">
-        <option value="0">📁 Audio local (dossier audio/) ⭐ الأفضل</option>
-        <option value="1">everyayah.com — ورش</option>
+        <option value="0">everyayah.com — ورش ⭐</option>
         <option value="1">qurancdn.com (Warsh) — quran.com</option>
         <option value="2">verses.quran.com (Warsh)</option>
         <option value="3">mp3quran.net — ورش (server8)</option>
@@ -803,9 +802,6 @@ const SM=[[1,"الفاتحة","Al-Fatiha",7,"مكية",1],[2,"البقرة","Al-
 
 // ═══ AUDIO CDNS ═══
 var CDNS=[
-  // LOCAL FIRST (téléchargé via TELECHARGER.py) - toujours CORS OK depuis localhost
-  function(s,v){var ss=p3(s),vv=p3(v+1);return'audio/'+ss+vv+'.mp3';},
-  // CDN fallback (nécessite HTTP server avec CORS, pas file://)
   function(s,v){var ss=p3(s),vv=p3(v+1);return'https://everyayah.com/data/warsh_86kbps/'+ss+vv+'.mp3';},
   function(s,v){var ss=p3(s),vv=p3(v+1);return'https://audio.qurancdn.com/Warsh/mp3/128/'+ss+vv+'.mp3';},
   function(s,v){var ss=p3(s),vv=p3(v+1);return'https://server8.mp3quran.net/warsh/'+ss+vv+'.mp3';},
@@ -883,21 +879,12 @@ function playV(idx){
   if(idx<0||idx>=vs.length)return;
   cV=idx;ci=0;updInfo();hilite(idx);uvsel();
   document.getElementById('pe').textContent='';
-  // LOCAL FILE FIRST (imported via 📂)
+  // Local imported file takes priority
   var local=getLocalAudio(cS,idx);
-  if(local){
-    aud.src=local;
-    aud.playbackRate=spd;
-    aud.load();
-    aud.play().catch(function(){
-      document.getElementById('pe').textContent='⚠ Erreur lecture locale';
-    });
-    return;
-  }
-  // CDN fallback (needs HTTP server or CORS)
-  aud.src=CDNS[0](cS,idx);aud.playbackRate=spd;aud.load();
+  var src=local||CDNS[cdnIdx](cS,idx);
+  aud.src=src;aud.playbackRate=spd;aud.load();
   aud.play().catch(function(){
-    document.getElementById('pe').innerHTML='📂 Importez des mp3 via le bouton ou lancez LANCER.ps1';
+    document.getElementById('pe').textContent='';
   });
 }
 function togglePlay(){if(playing)aud.pause();else if(!aud.src)playV(cV);else{aud.playbackRate=spd;aud.play().catch(function(){playV(cV);});}}
